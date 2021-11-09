@@ -1,6 +1,10 @@
+#pragma once
 #include <string>
 #include <iostream>
 #include <stdlib.h>
+#ifndef VECTOR_N
+#include "Vector2D.h"
+#endif
 template <typename T,std::size_t N>
 class ArrayNxN
 {
@@ -8,6 +12,7 @@ class ArrayNxN
 public:
     ArrayNxN(T* table);
     ArrayNxN();
+    void set(int r,int c, T data);
     void operator=(const ArrayNxN<T,N>& other);
     T operator()(int r,int c)const;
     T* table() const {return data;};
@@ -15,7 +20,10 @@ public:
     ArrayNxN<T,N> operator+(const ArrayNxN<T,N>& other) const;
     ArrayNxN<T,N> operator*(const ArrayNxN<T,N>& other) const;
     ArrayNxN<T,N> operator*(int lambda) const;
+    VectorN<T,N> operator*(VectorN<T,N>& vec);
     friend std::ostream& operator<<(std::ostream& out,const ArrayNxN<T,N> data);
+    static VectorN<T,N> Scale(VectorN<T,N>& vec, VectorN<T,N>& scale);
+    static VectorN<T,N> Translate(VectorN<T,N>& vec, VectorN<T,N> dest);
     ~ArrayNxN(){};
 };
 
@@ -128,4 +136,56 @@ ArrayNxN<T,N>::ArrayNxN(T* table){
         this->data[i]=table[i];
     }
 }
- 
+template <typename T,std::size_t N>
+VectorN<T,N> ArrayNxN<T,N>::operator*(VectorN<T,N>& vec){
+    VectorN<T,N> fin();
+    T sum;
+    for (size_t i = 0; i < N; i++)
+    {
+        sum=T();
+        for (size_t j = 0; j < N; j++)
+        {
+            sum+=data[i*N+j]*vec(j);
+        }
+        fin.set(i,sum);
+    }  
+    return fin;
+}
+template <typename T,std::size_t N>
+static VectorN<T,N> ArrayNxN<T,N>::Scale(VectorN<T,N>& vec,VectorN<T,N>& scale){
+    ArrayNxN<T,N> fin();
+    for (size_t i = 0; i < N; i++)
+    {
+        data[i*N+i]=scale[i];
+    }
+    return fin*vec;
+}
+
+template <typename T,std::size_t N>
+static VectorN<T,N> ArrayNxN<T,N>::Translate(VectorN<T,N>& vec, VectorN<T,N> dest){
+    // Find the homogenous vector in the N+1 dimension where w=1
+    VectorN<T,N+1> add1(vec.homogenize());
+    // Construct the homogenous (N+1)x(N+1) array
+    ArrayNxN<T,N+1> add2();
+    for (size_t i = 0; i < N+1; i++)
+    {
+        add2.set(i,i,T(1));
+    }
+    for (size_t i = 0; i < N; i++)
+    {
+        add2.set(i,N,dest(i));
+    }
+    // Find the N+1 dimension vector and since w=1 return to the Nth dimension
+    VectorN<T,N+1> temp=add2*add1;
+    VectorN<T,N> fin();
+    for (size_t i = 0; i < N; i++)
+    {
+        fin.set(i,temp(i));
+    }
+    return fin;
+}
+template <typename T,std::size_t N>
+void ArrayNxN<T,N>::set(int r,int c, T data){
+    if ((r<0||r>=N)||(c<0||r>=N))return;
+    this->data[r*N+c]=data;
+}

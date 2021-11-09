@@ -2,7 +2,7 @@
 #include "ArrayNxN.h"
 using namespace std;
 int main(int argc,char** argv){
-    cout<<"Let's do some math!"<<endl;
+    cout<<"Let's do some math! "<<double(1)<<endl;
     int data[9]={1,2,3,4,5,6,7,8,9};
     ArrayNxN<int,3>* myArr=new ArrayNxN<int,3>(data);
     int other[9]={2,3,4,5,6,7,8,9,10};
