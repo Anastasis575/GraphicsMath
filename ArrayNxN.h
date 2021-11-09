@@ -21,38 +21,25 @@ public:
     ArrayNxN<T,N> operator*(const ArrayNxN<T,N>& other) const;
     ArrayNxN<T,N> operator*(int lambda) const;
     VectorN<T,N> operator*(VectorN<T,N>& vec);
-    friend std::ostream& operator<<(std::ostream& out,const ArrayNxN<T,N> data);
     static VectorN<T,N> Scale(VectorN<T,N>& vec, VectorN<T,N>& scale);
     static VectorN<T,N> Translate(VectorN<T,N>& vec, VectorN<T,N> dest);
     ~ArrayNxN(){};
 };
+template<typename T,std::size_t N>
+inline std::ostream& operator<<(std::ostream& out, const ArrayNxN<T,N> data){
+    std::string buffer="";
+    for (size_t i = 0; i < N; i++)
+    {
+        for (size_t k = 0; k < N; k++)
+        {
+            buffer+= std::to_string(data(i,k));
+            if (i*N+k<N*N-1)buffer+=", ";
+        }
+        buffer+="\n";
+    }
+    return out<<buffer;
+}
 
-std::ostream& operator<<(std::ostream& out, const ArrayNxN<int,2> data){
-    std::string buffer="";
-    for (size_t i = 0; i < 2; i++)
-    {
-        for (size_t k = 0; k < 2; k++)
-        {
-            buffer+= std::to_string(data(i,k));
-            if (i*2+k<3)buffer+=", ";
-        }
-        buffer+="\n";
-    }
-    return out<<buffer;
-}
-std::ostream& operator<<(std::ostream& out, const ArrayNxN<int,3> data){
-    std::string buffer="";
-    for (size_t i = 0; i < 3; i++)
-    {
-        for (size_t k = 0; k < 3; k++)
-        {
-            buffer+= std::to_string(data(i,k));
-            if (i*3+k<8)buffer+=", ";
-        }
-        buffer+="\n";
-    }
-    return out<<buffer;
-}
 
 template <typename T,std::size_t N>
 ArrayNxN<T,N> ArrayNxN<T,N>::operator+(const ArrayNxN<T,N>& other) const{
@@ -61,7 +48,7 @@ ArrayNxN<T,N> ArrayNxN<T,N>::operator+(const ArrayNxN<T,N>& other) const{
     {
         for (size_t j = 0; j < N; j++)
         {
-            table[i*2+j]=this->data[i*N+j]+other(i,j);
+            table[i*N+j]=this->data[i*N+j]+other(i,j);
         }
     }
     return table;    
@@ -138,7 +125,7 @@ ArrayNxN<T,N>::ArrayNxN(T* table){
 }
 template <typename T,std::size_t N>
 VectorN<T,N> ArrayNxN<T,N>::operator*(VectorN<T,N>& vec){
-    VectorN<T,N> fin();
+    VectorN<T,N> fin=VectorN<T,N>();
     T sum;
     for (size_t i = 0; i < N; i++)
     {
@@ -152,21 +139,21 @@ VectorN<T,N> ArrayNxN<T,N>::operator*(VectorN<T,N>& vec){
     return fin;
 }
 template <typename T,std::size_t N>
-static VectorN<T,N> ArrayNxN<T,N>::Scale(VectorN<T,N>& vec,VectorN<T,N>& scale){
-    ArrayNxN<T,N> fin();
+VectorN<T,N> ArrayNxN<T,N>::Scale(VectorN<T,N>& vec,VectorN<T,N>& scale){
+    ArrayNxN<T,N> fin=ArrayNxN<T,N>();
     for (size_t i = 0; i < N; i++)
     {
-        data[i*N+i]=scale[i];
+        fin.set(i,i,scale(i));
     }
     return fin*vec;
 }
 
 template <typename T,std::size_t N>
-static VectorN<T,N> ArrayNxN<T,N>::Translate(VectorN<T,N>& vec, VectorN<T,N> dest){
+VectorN<T,N> ArrayNxN<T,N>::Translate(VectorN<T,N>& vec, VectorN<T,N> dest){
     // Find the homogenous vector in the N+1 dimension where w=1
     VectorN<T,N+1> add1(vec.homogenize());
     // Construct the homogenous (N+1)x(N+1) array
-    ArrayNxN<T,N+1> add2();
+    ArrayNxN<T,N+1> add2=ArrayNxN<T,N+1>();
     for (size_t i = 0; i < N+1; i++)
     {
         add2.set(i,i,T(1));
@@ -177,7 +164,7 @@ static VectorN<T,N> ArrayNxN<T,N>::Translate(VectorN<T,N>& vec, VectorN<T,N> des
     }
     // Find the N+1 dimension vector and since w=1 return to the Nth dimension
     VectorN<T,N+1> temp=add2*add1;
-    VectorN<T,N> fin();
+    VectorN<T,N> fin=VectorN<T,N>();
     for (size_t i = 0; i < N; i++)
     {
         fin.set(i,temp(i));

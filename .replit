@@ -1,0 +1,2 @@
+language = "cpp"
+run = "g++ -o a.exe main.cpp && ./a.exe "
